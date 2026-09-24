@@ -1,0 +1,21 @@
+# Blueprint do Render: New → Blueprint → escolha este repositório.
+services:
+  - type: web
+    name: futebol-api
+    runtime: docker
+    plan: free
+    region: virginia # combine com a região do Neon (AWS us-east-1)
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL # Neon: string "Pooled connection" (host com -pooler)
+        sync: false
+      - key: DIRECT_URL # Neon: string direta (sem -pooler), usada pelas migrations
+        sync: false
+      - key: SESSION_PEPPER # segredo gerado automaticamente pelo Render
+        generateValue: true
+      - key: CORS_ORIGIN # endereço do site no Cloudflare Pages
+        value: https://gerenciamento-futebol.pages.dev

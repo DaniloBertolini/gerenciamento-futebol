@@ -1,0 +1,10 @@
+{
+  "name": "gerenciamento-futebol",
+  "private": true,
+  "scripts": {
+    "db": "docker compose up -d",
+    "api": "npm --prefix api run start:dev",
+    "web": "npx --yes serve web -l 5500",
+    "test": "npm --prefix api run test:e2e"
+  }
+}

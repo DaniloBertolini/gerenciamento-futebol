@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // conexão direta (sem pooler), usada só pelas migrations
+}
+
+model User {
+  id           String    @id @default(cuid())
+  login        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
+  players      Player[]
+  settings     Settings?
+  game         Game?
+}
+
+// Sessão de login. Guardamos só o hash do token; o token em si fica no navegador.
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  lastUsedAt DateTime @default(now())
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Player {
+  id          String       @id @default(cuid())
+  userId      String
+  name        String
+  level       Int
+  selected    Boolean      @default(false) // marcado para jogar
+  inGoal      Boolean      @default(false) // no gol no próximo sorteio
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameEntries GamePlayer[]
+
+  @@index([userId])
+}
+
+model Settings {
+  userId    String   @id
+  numTeams  Int      @default(2)
+  pixKey    String   @default("")
+  pixQr     String?  // imagem do QR Code do Pix (data URL)
+  lastDraw  Json?    // { date, goalkeepers: [playerId], teams: [[playerId]] }
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Cobrança do jogo atual (uma por usuário).
+model Game {
+  id         String       @id @default(cuid())
+  userId     String       @unique
+  totalCents Int
+  createdAt  DateTime     @default(now())
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  players    GamePlayer[]
+}
+
+enum PaymentMethod {
+  dinheiro
+  pix
+  cartao
+  pago // pagamento antigo, sem forma registrada
+}
+
+// O nome fica guardado para a cobrança não perder a pessoa se ela for excluída do cadastro.
+model GamePlayer {
+  id        String         @id @default(cuid())
+  gameId    String
+  playerId  String?
+  name      String
+  method    PaymentMethod?
+  createdAt DateTime       @default(now())
+  game      Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  player    Player?        @relation(fields: [playerId], references: [id], onDelete: SetNull)
+
+  @@unique([gameId, playerId])
+}

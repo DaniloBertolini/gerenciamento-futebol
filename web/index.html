@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#123d29" />
+  <title>Futebol</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap"
+  />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="locked">
+  <header class="topbar">
+    <div class="net-bar" aria-hidden="true"></div>
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2.2" />
+        <polygon points="20,13.8 25.9,18.08 23.64,25.02 16.36,25.02 14.1,18.08" fill="currentColor" />
+        <path
+          d="M20 13.8L20 8.5M20 8.5L9.42 5.44M20 8.5L30.58 5.44M25.9 18.08L30.94 16.45M30.94 16.45L30.58 5.44M30.94 16.45L37.12 25.56M23.64 25.02L26.76 29.3M26.76 29.3L37.12 25.56M26.76 29.3L20 38M16.36 25.02L13.24 29.3M13.24 29.3L20 38M13.24 29.3L2.88 25.56M14.1 18.08L9.06 16.45M9.06 16.45L2.88 25.56M9.06 16.45L9.42 5.44"
+          fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
+        />
+      </svg>
+      <div>
+        <h1>Futebol</h1>
+        <p class="brand-sub">Sorteio &amp; pagamentos</p>
+      </div>
+      <button type="button" id="logout-btn" class="topbar-btn" title="Sair da conta">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></svg>
+        <span>Sair</span>
+      </button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="jogadores" role="tab">Jogadores</button>
+      <button class="tab" data-tab="sorteio" role="tab">Sorteio</button>
+      <button class="tab" data-tab="pagamentos" role="tab">Pagamentos</button>
+    </nav>
+  </header>
+
+  <!-- ===================== CARREGANDO ===================== -->
+  <div id="boot-screen" class="gate">
+    <div class="gate-box">
+      <div class="spinner" aria-hidden="true"></div>
+      <p id="boot-text" class="gate-text">Carregando…</p>
+      <p id="boot-slow" class="muted hidden">
+        O servidor gratuito "dorme" depois de um tempo sem uso. Na primeira abertura pode levar até 1 minuto.
+      </p>
+      <button type="button" id="boot-retry" class="btn hidden">Tentar de novo</button>
+    </div>
+  </div>
+
+  <!-- ===================== LOGIN ===================== -->
+  <div id="auth-screen" class="gate hidden">
+    <form id="auth-form" class="card auth-card" autocomplete="on">
+      <h2 id="auth-title">Entrar</h2>
+      <p id="auth-sub" class="muted">Acesse seus jogadores, sorteios e pagamentos.</p>
+      <label class="field">
+        <span>Login</span>
+        <input id="auth-login" type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40" required />
+      </label>
+      <label class="field">
+        <span>Senha</span>
+        <input id="auth-password" type="password" name="password" autocomplete="current-password" maxlength="72" required />
+      </label>
+      <label id="auth-confirm-field" class="field hidden">
+        <span>Confirmar senha</span>
+        <input id="auth-confirm" type="password" autocomplete="new-password" maxlength="72" />
+      </label>
+      <p id="auth-error" class="form-error" role="alert"></p>
+      <button type="submit" id="auth-submit" class="btn primary big">Entrar</button>
+    </form>
+  </div>
+
+  <main>
+    <!-- ===================== JOGADORES ===================== -->
+    <section id="tab-jogadores" class="tab-panel active">
+      <form id="player-form" class="card" autocomplete="off">
+        <h2 id="form-title">Adicionar jogador</h2>
+        <label class="field">
+          <span>Nome</span>
+          <input id="player-name" type="text" maxlength="40" placeholder="Ex.: João" required />
+        </label>
+        <div class="field">
+          <span>Nível</span>
+          <div id="level-picker" class="level-picker" role="radiogroup"></div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" id="form-submit" class="btn primary">Adicionar</button>
+          <button type="button" id="form-cancel" class="btn ghost hidden">Cancelar</button>
+        </div>
+      </form>
+
+      <div class="card">
+        <div class="list-header">
+          <h2>Cadastrados <span id="player-count" class="badge">0</span></h2>
+          <select id="player-sort" aria-label="Ordenar">
+            <option value="name">Nome A-Z</option>
+            <option value="level-desc">Nível (maior)</option>
+            <option value="level-asc">Nível (menor)</option>
+          </select>
+        </div>
+        <input id="player-search" type="search" class="search" placeholder="Buscar jogador..." />
+        <ul id="player-list" class="player-list"></ul>
+        <p id="player-empty" class="empty">Nenhum jogador cadastrado ainda.</p>
+      </div>
+
+      <div class="card account">
+        <h2>Conta</h2>
+        <p class="muted">Conectado como <strong id="account-login"></strong>. Os dados ficam salvos no servidor e aparecem em qualquer aparelho.</p>
+        <div class="form-actions">
+          <button type="button" id="password-toggle" class="btn">Trocar senha</button>
+          <button type="button" id="export-btn" class="btn">Exportar backup</button>
+          <label class="btn">
+            Importar backup
+            <input id="import-input" type="file" accept="application/json,.json" hidden />
+          </label>
+        </div>
+        <form id="password-form" class="password-form hidden" autocomplete="off">
+          <label class="field">
+            <span>Senha atual</span>
+            <input id="pw-current" type="password" autocomplete="current-password" maxlength="72" required />
+          </label>
+          <label class="field">
+            <span>Nova senha</span>
+            <input id="pw-new" type="password" autocomplete="new-password" minlength="6" maxlength="72" required />
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Salvar nova senha</button>
+            <button type="button" id="password-cancel" class="btn ghost">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================== SORTEIO ===================== -->
+    <section id="tab-sorteio" class="tab-panel">
+      <div class="card">
+        <div class="list-header">
+          <h2>Quem vai jogar? <span id="selected-count" class="badge">0</span></h2>
+          <div class="inline-actions">
+            <button type="button" id="select-all" class="btn small">Todos</button>
+            <button type="button" id="select-none" class="btn small">Nenhum</button>
+          </div>
+        </div>
+        <input id="select-search" type="search" class="search" placeholder="Buscar jogador..." />
+        <ul id="select-list" class="select-list"></ul>
+        <p id="select-empty" class="empty">Cadastre jogadores na aba "Jogadores".</p>
+      </div>
+
+      <div class="card">
+        <h2>Configuração</h2>
+        <div class="config-row">
+          <label class="field">
+            <span>Quantidade de times</span>
+            <input id="num-teams" type="number" min="2" max="10" value="2" />
+          </label>
+          <p id="config-hint" class="muted"></p>
+          <p id="gk-hint" class="gk-hint"></p>
+        </div>
+        <button type="button" id="draw-btn" class="btn primary big">Sortear times</button>
+      </div>
+
+      <div id="draw-result" class="hidden">
+        <div class="result-header">
+          <h2>Times sorteados</h2>
+          <div class="inline-actions">
+            <button type="button" id="reset-draw-btn" class="btn small danger">Resetar</button>
+            <button type="button" id="copy-btn" class="btn small primary">Copiar</button>
+          </div>
+        </div>
+        <p id="draw-meta" class="muted"></p>
+        <div id="draw-gks" class="draw-gks"></div>
+        <div id="teams" class="teams"></div>
+      </div>
+    </section>
+
+    <!-- ===================== PAGAMENTOS ===================== -->
+    <section id="tab-pagamentos" class="tab-panel">
+      <form id="game-form" class="card" autocomplete="off">
+        <h2 id="game-form-title">Cobrança do jogo</h2>
+        <label class="field">
+          <span>Valor total do campo (R$)</span>
+          <input id="game-total" type="number" min="0" step="0.01" inputmode="decimal" value="150" required />
+        </label>
+        <p id="game-preview" class="muted"></p>
+        <button type="submit" id="game-submit" class="btn primary big">Criar cobrança</button>
+      </form>
+
+      <div id="game"></div>
+
+      <div class="card pix-card">
+        <h2>QR Code do Pix</h2>
+        <div id="pix-qr-area"></div>
+        <label class="field">
+          <span>Chave Pix (aparece embaixo do QR Code)</span>
+          <input id="pix-key" type="text" maxlength="80" placeholder="Opcional" />
+        </label>
+      </div>
+    </section>
+
+    <div id="qr-overlay" class="qr-overlay hidden" role="dialog" aria-label="QR Code do Pix">
+      <div class="qr-box">
+        <img id="qr-overlay-img" alt="QR Code do Pix" />
+        <p id="qr-overlay-value" class="qr-value"></p>
+        <p id="qr-overlay-key" class="qr-key"></p>
+        <button type="button" id="qr-close" class="btn big">Fechar</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/legacy.js"></script>
+  <script src="js/draw.js"></script>
+  <script src="js/payments.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
